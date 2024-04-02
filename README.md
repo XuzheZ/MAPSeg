@@ -1,7 +1,7 @@
 # MAPSeg
 MAPSeg: Unified Unsupervised Domain Adaptation for Heterogeneous Medical Image Segmentation Based on 3D Masked Autoencoding and Pseudo-Labeling
 
-:beers: Accepted @ CVPR 2024! We are refining the code to be released and aim to upload it by the <ins>end of April</ins>.
+:beers: Accepted @ CVPR 2024! Camera-ready version: [ArXiv](https://arxiv.org/abs/2303.09373). We are refining the code to be released and aim to upload it by the <ins>end of April</ins>.
 
 We are currently:
 - Merging code of centralized/federated/test-time UDA into the same codespace. 
