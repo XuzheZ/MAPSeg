@@ -1,0 +1,13 @@
+dominate==2.7.0
+MedPy==0.4.0
+nibabel==5.2.1
+numpy==1.23.2
+pandas==1.5.1
+Pillow==9.2.0
+Pillow==10.3.0
+PyYAML==6.0
+PyYAML==6.0.1
+scipy==1.13.1
+torch==1.13.0+cu116
+torchio==0.18.79
+yacs==0.1.8

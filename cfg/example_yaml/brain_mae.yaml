@@ -1,0 +1,17 @@
+system:
+  project: PROJE
+  exp_name: BRAIN_MAE_70
+  n_threads: 8
+  ckpt_dir: 'CKPT'
+  seed: 0
+
+train: 
+  niter: 200
+  niter_decay: 100
+  type: 'mae'
+
+data: 
+  mae_root: 'DIR'
+
+model:
+  pretrain_model: None 
