@@ -11,7 +11,7 @@ Built upon complementary masked autoencoding and pseudo-labeling:
 ![Framework](/figs/framework.png)
 ## Usage: 
 
-    conda create --name <mapseg> --file requirements.txt
+    conda create --name mapseg --file requirements.txt
     conda activate mapseg
 
 For training: 
@@ -29,7 +29,7 @@ There is a **detailed** explanation in /cfg/default.py
 More to be updated soon. 
 1. The input image should have correct affine information (for orientation) in header. The data loader will automatically adjust it to the RAS space as defined in Nibabel (see [more](https://nipy.org/nibabel/coordinate_systems.html))
 2. If orientation information is no longer available, please manually check all scans (the data matric) to ensure they are in the same orientation. This is extremely important in pseudo labeling (fine for MAE pretrain in different orientations). 
-3. The data loader will erase all negative intensity to extract the boundary information appropriately. Please add an offset to CT to make it all positive if used. 
+3. The data loader will erase all negative intensity to extract the boundary information appropriately. Please add an offset to CT to make it all positive if used. What I did is to add +1024 to all pixels and then set remaining negative pixels to 0.
 4. There are two versions of training script provided. In our some other experiments, it appears trainV2 is more stable than the version introduced in paper. We will share more information soon. 
 5. Unfortunately, we need more time to integrate FL into this code space. My collaborator (Yuhao) is working on it. 
 6. For MPL, because of the memory limitation in our GPU, we have not tested on batch size over 1, and the current data loading may not work well for larger batch size. We are working to improve it.
