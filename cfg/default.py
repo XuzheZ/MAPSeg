@@ -58,7 +58,7 @@ _c.train.save_epoch_freq = 50
 # whether to run test-time domain adaptation
 _c.train.test_time = False
 # how many of epochs without improvement will stop the trianing
-_c.train.patience = 50  
+_c.train.patience = 50
 
 _c.data = CN()
 # file extension fo the data
@@ -79,7 +79,7 @@ _c.data.patch_size = (96, 96, 96)
 _c.data.val_img = 'default'
 # path of validation label (source domain) during DA, it should have same file name with val_image
 _c.data.val_label = 'default'
-
+# For MAE TRAINING
 # root for masked autoencoding training
 '''
     data structure: 
@@ -91,6 +91,10 @@ _c.data.val_label = 'default'
         |--- tgt_2_train
 '''
 _c.data.mae_root = 'default'
+
+
+# FOR MPL Training
+
 # root for source data during pseudo label training
 '''
     data structure:
