@@ -52,23 +52,11 @@ class mae_dataset(data.Dataset):
         x, y, z = self.cfg.data.patch_size
 
         if min(tmp_scans.shape) < min(x, y, z):
-            diff = min(x, y, z) - min(tmp_scans.shape)
-            idx = tmp_scans.shape.index(min(tmp_scans.shape))
-            if idx == 0:
-                npad = ((int(np.round(diff / 2)), diff -
-                        int(np.round(diff / 2))), (0, 0), (0, 0))
-                tmp_scans = np.pad(tmp_scans, pad_width=npad,
-                                   mode='constant', constant_values=0)
-            elif idx == 1:
-                npad = ((0, 0), (int(np.round(diff / 2)),
-                        diff - int(np.round(diff / 2))), (0, 0))
-                tmp_scans = np.pad(tmp_scans, pad_width=npad,
-                                   mode='constant', constant_values=0)
-            elif idx == 2:
-                npad = ((0, 0), (0, 0), (int(np.round(diff / 2)),
-                        diff - int(np.round(diff / 2))))
-                tmp_scans = np.pad(tmp_scans, pad_width=npad,
-                                   mode='constant', constant_values=0)
+            x_diff = 96-tmp_scans.shape[0]
+            y_diff = 96-tmp_scans.shape[1]
+            z_diff = 96-tmp_scans.shape[2]
+            tmp_scans = np.pad(tmp_scans, ((max(0, int(x_diff/2)), max(0, x_diff-int(x_diff/2))), (max(0, int(
+                y_diff/2)), max(0, y_diff-int(y_diff/2))), (max(0, int(z_diff/2)), max(0, z_diff-int(z_diff/2)))))
             tmp_scans = torch.unsqueeze(torch.from_numpy(tmp_scans), 0)
         else:
             tmp_scans = torch.unsqueeze(torch.from_numpy(tmp_scans), 0)
@@ -207,23 +195,11 @@ class mpl_dataset(data.Dataset):
                 tmp_scansA = norm_img(tmp_scansA, self.cfg.data.norm_perc)
         # padding
         if min(tmp_scansA.shape) < min(x, y, z):
-            diff = min(x, y, z) - min(tmp_scansA.shape)
-            idx = tmp_scansA.shape.index(min(tmp_scansA.shape))
-            if idx == 0:
-                npad = ((int(np.round(diff / 2)), diff -
-                        int(np.round(diff / 2))), (0, 0), (0, 0))
-                tmp_scansA = np.pad(
-                    tmp_scansA, pad_width=npad, mode='constant', constant_values=0)
-            elif idx == 1:
-                npad = ((0, 0), (int(np.round(diff / 2)),
-                        diff - int(np.round(diff / 2))), (0, 0))
-                tmp_scansA = np.pad(
-                    tmp_scansA, pad_width=npad, mode='constant', constant_values=0)
-            elif idx == 2:
-                npad = ((0, 0), (0, 0), (int(np.round(diff / 2)),
-                        diff - int(np.round(diff / 2))))
-                tmp_scansA = np.pad(
-                    tmp_scansA, pad_width=npad, mode='constant', constant_values=0)
+            x_diff = 96-tmp_scansA.shape[0]
+            y_diff = 96-tmp_scansA.shape[1]
+            z_diff = 96-tmp_scansA.shape[2]
+            tmp_scansA = np.pad(tmp_scansA, ((max(0, int(x_diff/2)), max(0, x_diff-int(x_diff/2))), (max(0, int(
+                y_diff/2)), max(0, y_diff-int(y_diff/2))), (max(0, int(z_diff/2)), max(0, z_diff-int(z_diff/2)))))
             tmp_scansA = torch.unsqueeze(torch.from_numpy(tmp_scansA), 0)
         else:
             tmp_scansA = torch.unsqueeze(torch.from_numpy(tmp_scansA), 0)
@@ -340,32 +316,13 @@ class mpl_dataset(data.Dataset):
                 tmp_scans = norm_img(tmp_scans, self.cfg.data.norm_perc)
 
         if min(tmp_scans.shape) < min(x, y, z):
-            diff = min(x, y, z) - min(tmp_scans.shape)
-            idx = tmp_scans.shape.index(min(tmp_scans.shape))
-            if idx == 0:
-                npad = ((int(np.round(diff / 2)), diff -
-                        int(np.round(diff / 2))), (0, 0), (0, 0))
-                tmp_scans = np.pad(
-                    tmp_scans, pad_width=npad, mode='constant', constant_values=0)
-                tmp_label = np.pad(
-                    tmp_label, pad_width=npad, mode='constant', constant_values=0)
-
-            elif idx == 1:
-                npad = ((0, 0), (int(np.round(diff / 2)),
-                        diff - int(np.round(diff / 2))), (0, 0))
-                tmp_scans = np.pad(
-                    tmp_scans, pad_width=npad, mode='constant', constant_values=0)
-                tmp_label = np.pad(
-                    tmp_label, pad_width=npad, mode='constant', constant_values=0)
-
-            elif idx == 2:
-                npad = ((0, 0), (0, 0), (int(np.round(diff / 2)),
-                        diff - int(np.round(diff / 2))))
-                tmp_scans = np.pad(
-                    tmp_scans, pad_width=npad, mode='constant', constant_values=0)
-                tmp_label = np.pad(
-                    tmp_label, pad_width=npad, mode='constant', constant_values=0)
-
+            x_diff = 96-tmp_scans.shape[0]
+            y_diff = 96-tmp_scans.shape[1]
+            z_diff = 96-tmp_scans.shape[2]
+            tmp_scans = np.pad(tmp_scans, ((max(0, int(x_diff/2)), max(0, x_diff-int(x_diff/2))), (max(0, int(
+                y_diff/2)), max(0, y_diff-int(y_diff/2))), (max(0, int(z_diff/2)), max(0, z_diff-int(z_diff/2)))))
+            tmp_label = np.pad(tmp_label, ((max(0, int(x_diff/2)), max(0, x_diff-int(x_diff/2))), (max(0, int(
+                y_diff/2)), max(0, y_diff-int(y_diff/2))), (max(0, int(z_diff/2)), max(0, z_diff-int(z_diff/2)))))
             tmp_scans = torch.unsqueeze(torch.from_numpy(tmp_scans), 0)
             tmp_label = torch.unsqueeze(torch.from_numpy(tmp_label), 0)
 
