@@ -52,11 +52,11 @@ class mae_dataset(data.Dataset):
         x, y, z = self.cfg.data.patch_size
 
         if min(tmp_scans.shape) < min(x, y, z):
-            x_diff = 96-tmp_scans.shape[0]
-            y_diff = 96-tmp_scans.shape[1]
-            z_diff = 96-tmp_scans.shape[2]
+            x_diff = x-tmp_scans.shape[0]
+            y_diff = y-tmp_scans.shape[1]
+            z_diff = z-tmp_scans.shape[2]
             tmp_scans = np.pad(tmp_scans, ((max(0, int(x_diff/2)), max(0, x_diff-int(x_diff/2))), (max(0, int(
-                y_diff/2)), max(0, y_diff-int(y_diff/2))), (max(0, int(z_diff/2)), max(0, z_diff-int(z_diff/2)))))
+                y_diff/2)), max(0, y_diff-int(y_diff/2))), (max(0, int(z_diff/2)), max(0, z_diff-int(z_diff/2)))), constant_values=1e-4)  # cant pad with 0s, otherwise the local and global patches wont be the same location
             tmp_scans = torch.unsqueeze(torch.from_numpy(tmp_scans), 0)
         else:
             tmp_scans = torch.unsqueeze(torch.from_numpy(tmp_scans), 0)
@@ -316,13 +316,13 @@ class mpl_dataset(data.Dataset):
                 tmp_scans = norm_img(tmp_scans, self.cfg.data.norm_perc)
 
         if min(tmp_scans.shape) < min(x, y, z):
-            x_diff = 96-tmp_scans.shape[0]
-            y_diff = 96-tmp_scans.shape[1]
-            z_diff = 96-tmp_scans.shape[2]
+            x_diff = x-tmp_scans.shape[0]
+            y_diff = y-tmp_scans.shape[1]
+            z_diff = z-tmp_scans.shape[2]
             tmp_scans = np.pad(tmp_scans, ((max(0, int(x_diff/2)), max(0, x_diff-int(x_diff/2))), (max(0, int(
-                y_diff/2)), max(0, y_diff-int(y_diff/2))), (max(0, int(z_diff/2)), max(0, z_diff-int(z_diff/2)))))
+                y_diff/2)), max(0, y_diff-int(y_diff/2))), (max(0, int(z_diff/2)), max(0, z_diff-int(z_diff/2)))), constant_values=1e-4)  # cant pad with 0s, otherwise the local and global patches wont be the same location
             tmp_label = np.pad(tmp_label, ((max(0, int(x_diff/2)), max(0, x_diff-int(x_diff/2))), (max(0, int(
-                y_diff/2)), max(0, y_diff-int(y_diff/2))), (max(0, int(z_diff/2)), max(0, z_diff-int(z_diff/2)))))
+                y_diff/2)), max(0, y_diff-int(y_diff/2))), (max(0, int(z_diff/2)), max(0, z_diff-int(z_diff/2)))), constant_values=0)  # pad with 0s bc it is label
             tmp_scans = torch.unsqueeze(torch.from_numpy(tmp_scans), 0)
             tmp_label = torch.unsqueeze(torch.from_numpy(tmp_label), 0)
 

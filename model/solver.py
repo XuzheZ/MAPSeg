@@ -243,7 +243,6 @@ class mpl_trainer(nn.Module):
             loss = (seg_loss + seg_loss_masked) * 0.5 + (seg_loss_aux + seg_loss_aux_masked) * 0.5 * 0.1 + (
                 cos_feat + cos_feat_masked) * 0.5 * 0.05
 
-
             self.optimizer.zero_grad()
             loss.backward()
             self.optimizer.step()
@@ -339,7 +338,6 @@ class mpl_trainer(nn.Module):
                 self.tmp_tgt_pse_seg_loss_aux += pse_seg_loss_aux.item()
                 self.tmp_tgt_cos_reg += pse_cos_feat.item()
 
-
                 self.optimizer.zero_grad()
                 loss.backward()
                 self.optimizer.step()
@@ -396,12 +394,23 @@ class mpl_trainer(nn.Module):
 
     @torch.no_grad()
     def infer_single_scan(self, tmp_scans):
+        pad_flag = False
         self.model.eval()
         x, y, z = self.cfg.data.patch_size
-        pred = np.zeros((self.cfg.train.cls_num,) + tmp_scans.shape)
-        tmp_norm = np.zeros((self.cfg.train.cls_num,) + tmp_scans.shape)
         if self.cfg.data.normalize:
             tmp_scans = util.norm_img(tmp_scans, self.cfg.data.norm_perc)
+        if min(tmp_scans.shape) < min(x, y, z):
+            x_ori_size, y_ori_size, z_ori_size = tmp_scans.shape
+            pad_flag = True
+            x_diff = x-x_ori_size
+            y_diff = y-y_ori_size
+            z_diff = z-z_ori_size
+            tmp_scans = np.pad(tmp_scans, ((max(0, int(x_diff/2)), max(0, x_diff-int(x_diff/2))), (max(0, int(
+                y_diff/2)), max(0, y_diff-int(y_diff/2))), (max(0, int(z_diff/2)), max(0, z_diff-int(z_diff/2)))), constant_values=1e-4)  # cant pad with 0s, otherwise the local and global patches wont be the same location
+
+        pred = np.zeros((self.cfg.train.cls_num,) + tmp_scans.shape)
+        tmp_norm = np.zeros((self.cfg.train.cls_num,) + tmp_scans.shape)
+
         scan_patches, _, tmp_idx = util.patch_slicer(tmp_scans, tmp_scans, self.cfg.data.patch_size,
                                                      (x - 16, y -
                                                       16, z - 16),
@@ -421,8 +430,7 @@ class mpl_trainer(nn.Module):
             location = torch.zeros_like(
                 torch.from_numpy(tmp_scans)).float()
             location = torch.unsqueeze(location, 0)
-            location[:, patch_idx[0]:patch_idx[1], patch_idx[2]
-                :patch_idx[3], patch_idx[4]:patch_idx[5]] = 1
+            location[:, patch_idx[0]:patch_idx[1], patch_idx[2]:patch_idx[3], patch_idx[4]:patch_idx[5]] = 1
 
             sbj = tio.Subject(one_image=tio.ScalarImage(
                 tensor=global_scan[:, bound[0]:bound[1], bound[2]:bound[3], bound[4]:bound[5]]),
@@ -458,7 +466,12 @@ class mpl_trainer(nn.Module):
         sf = torch.nn.Softmax(dim=0)
         pred_vol = sf(torch.from_numpy(pred)).numpy()
         pred_vol = np.argmax(pred_vol, axis=0)
-
+        if pad_flag:
+            pred_vol = pred_vol[max(0, int(x_diff/2)): max(0, int(x_diff/2))+x_ori_size,
+                                max(0, int(y_diff/2)): max(0, int(y_diff/2))+y_ori_size,
+                                max(0, int(z_diff/2)): max(0, int(z_diff/2))+z_ori_size]
+            assert pred_vol.shape == (
+                x_ori_size, y_ori_size, z_ori_size), 'pred_vol shape must be the same as the original scan shape'
         return pred_vol
 
     def validation(self, epoch):

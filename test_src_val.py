@@ -11,12 +11,23 @@ import medpy.metric.binary as mmb
 
 
 def infer_single_scan(model, cfg, tmp_scans):
+    pad_flag = False
     model.eval()
     x, y, z = cfg.data.patch_size
-    pred = np.zeros((cfg.train.cls_num,) + tmp_scans.shape)
-    tmp_norm = np.zeros((cfg.train.cls_num,) + tmp_scans.shape)
     if cfg.data.normalize:
         tmp_scans = util.norm_img(tmp_scans, cfg.data.norm_perc)
+    if min(tmp_scans.shape) < min(x, y, z):
+        x_ori_size, y_ori_size, z_ori_size = tmp_scans.shape
+        pad_flag = True
+        x_diff = x-x_ori_size
+        y_diff = y-y_ori_size
+        z_diff = z-z_ori_size
+        tmp_scans = np.pad(tmp_scans, ((max(0, int(x_diff/2)), max(0, x_diff-int(x_diff/2))), (max(0, int(
+            y_diff/2)), max(0, y_diff-int(y_diff/2))), (max(0, int(z_diff/2)), max(0, z_diff-int(z_diff/2)))), constant_values=1e-4)  # cant pad with 0s, otherwise the local and global patches wont be the same location
+
+    pred = np.zeros((cfg.train.cls_num,) + tmp_scans.shape)
+    tmp_norm = np.zeros((cfg.train.cls_num,) + tmp_scans.shape)
+
     scan_patches, _, tmp_idx = util.patch_slicer(tmp_scans, tmp_scans, cfg.data.patch_size,
                                                  (x - 16, y -
                                                      16, z - 16),
@@ -36,8 +47,7 @@ def infer_single_scan(model, cfg, tmp_scans):
         location = torch.zeros_like(
             torch.from_numpy(tmp_scans)).float()
         location = torch.unsqueeze(location, 0)
-        location[:, patch_idx[0]:patch_idx[1], patch_idx[2]
-            :patch_idx[3], patch_idx[4]:patch_idx[5]] = 1
+        location[:, patch_idx[0]:patch_idx[1], patch_idx[2]                 :patch_idx[3], patch_idx[4]:patch_idx[5]] = 1
 
         sbj = tio.Subject(one_image=tio.ScalarImage(
             tensor=global_scan[:, bound[0]:bound[1], bound[2]:bound[3], bound[4]:bound[5]]),
@@ -73,7 +83,12 @@ def infer_single_scan(model, cfg, tmp_scans):
     sf = torch.nn.Softmax(dim=0)
     pred_vol = sf(torch.from_numpy(pred)).numpy()
     pred_vol = np.argmax(pred_vol, axis=0)
-
+    if pad_flag:
+        pred_vol = pred_vol[max(0, int(x_diff/2)): max(0, int(x_diff/2))+x_ori_size,
+                            max(0, int(y_diff/2)): max(0, int(y_diff/2))+y_ori_size,
+                            max(0, int(z_diff/2)): max(0, int(z_diff/2))+z_ori_size]
+        assert pred_vol.shape == (
+            x_ori_size, y_ori_size, z_ori_size), 'pred_vol shape must be the same as the original scan shape'
     return pred_vol
 
 
