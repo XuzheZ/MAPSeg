@@ -226,13 +226,24 @@ def patch_slicer(scan, mask, patch_size, stride, remove_bg=True, test=False, ori
     p1, p2, p3 = patch_size
     s1, s2, s3 = stride
 
-    if x2 - x1 < p1 or y2 - y1 < p2 or z2 - z1 < p3:
-        x1 = 0
-        x2 = x
-        y1 = 0
-        y2 = y
-        z1 = 0
-        z2 = z
+    if x2 - x1 < p1:
+        if x2-p1 > 0:
+            x1 = x2-p1
+        else:
+            x1 = 0
+            x2 = p1
+    if y2 - y1 < p2:
+        if y2-p2 > 0:
+            y1 = y2-p2
+        else:
+            y1 = 0
+            y2 = p2
+    if z2 - z1 < p3:
+        if z2-p3 > 0:
+            z1 = z2-p3
+        else:
+            z1 = 0
+            z2 = p3
 
     x_stpes = _gen_indices(x1, x2, p1, s1)
     for x_idx in x_stpes:
