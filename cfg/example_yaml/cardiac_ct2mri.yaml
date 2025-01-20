@@ -1,0 +1,34 @@
+system:
+  project: PROJ
+  exp_name: cardiac_mpl_ct2mri
+  n_threads: 8
+  ckpt_dir: 'DIR'
+  seed: 0
+
+train: 
+  lr: 1e-4 
+  batch_size: 1
+  weight_decay: 0.01
+  betas: (0.9, 0.999)
+  niter: 0
+  niter_decay: 150
+  type: 'mpl'
+  mask_ratio: 0.7
+  cls_num: 5
+  warmup: 50
+  save_epoch_freq: 50
+  patience: 75
+  
+data: 
+  val_img: 'DIR'
+  val_label: 'DIR'
+  src_data: 'DIR'
+  tgt_data: 'DIR'
+# for cardiac exps, you can set the val_img and val_label to the target training data to use the same setting as previous methods
+# see discussion here: https://github.com/cchen-cc/SIFA/issues/19#issuecomment-715458871
+# and https://github.com/cchen-cc/SIFA/blob/be5b792ecb7ed85f533bbb91223a7278e969b12d/main.py#L99
+# you can also use the validation from the source domain and the pseudo label loss for validation 
+
+model:
+  pretrain_model: 'PTH'
+  large_scale: False # note that we set large-scale to False for cardiac exps because it only involves dozens of scans 
