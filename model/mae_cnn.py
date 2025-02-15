@@ -120,18 +120,18 @@ class MAE_CNN(nn.Module):
 
     #     return x, mask
 
-    # def forward_local_decoder(self, x):
-    #     x = self.local_upsample(x)
-    #     # apply Transformer blocks
-    #     for blk in self.local_decoder:
-    #         x = blk(x)
+    def forward_local_decoder(self, x):
+        x = self.local_upsample(x)
+        # apply Transformer blocks
+        for blk in self.local_decoder:
+            x = blk(x)
 
-    #     x = self.final_norm_local_recon(x)
+        x = self.final_norm_local_recon(x)
 
-    #     x = self.final_projection_local_recon(x)
-    #     x = torch.sigmoid(x)
+        x = self.final_projection_local_recon(x)
+        x = torch.sigmoid(x)
 
-    #     return x
+        return x
 
     # for checkpoint
     def forward_local_encoder(self, x):
