@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 from .blocks import create_encoders, ExtResNetBlock, _ntuple, res_decoders
 import numpy as np
+from torch.utils.checkpoint import checkpoint
 
 
 class MAE_CNN(nn.Module):
@@ -108,29 +109,47 @@ class MAE_CNN(nn.Module):
 
         return x_masked, mask
 
-    def forward_encoder(self, x, mask_ratio, p):
+    # def forward_encoder(self, x, mask_ratio, p):
 
-        # masking: length -> length * mask_ratio
+    #     # masking: length -> length * mask_ratio
+    #     x, mask = self.random_masking(x, mask_ratio, p)
+
+    #     # apply Transformer blocks
+    #     for blk in self.local_encoder:
+    #         x = blk(x)
+
+    #     return x, mask
+
+    # def forward_local_decoder(self, x):
+    #     x = self.local_upsample(x)
+    #     # apply Transformer blocks
+    #     for blk in self.local_decoder:
+    #         x = blk(x)
+
+    #     x = self.final_norm_local_recon(x)
+
+    #     x = self.final_projection_local_recon(x)
+    #     x = torch.sigmoid(x)
+
+    #     return x
+
+    # for checkpoint
+    def forward_local_encoder(self, x):
+        mask_ratio = self.cfg.train.mask_ratio
+        p = self.cfg.train.local_mae_patch
         x, mask = self.random_masking(x, mask_ratio, p)
-
-        # apply Transformer blocks
         for blk in self.local_encoder:
             x = blk(x)
-
         return x, mask
-
-    def forward_local_decoder(self, x):
-        x = self.local_upsample(x)
-        # apply Transformer blocks
-        for blk in self.local_decoder:
+    
+    # for checkpoint
+    def forward_global_encoder(self, x): 
+        mask_ratio = self.cfg.train.mask_ratio
+        p = self.cfg.train.global_mae_patch
+        x, mask = self.random_masking(x, mask_ratio, p)
+        for blk in self.local_encoder:
             x = blk(x)
-
-        x = self.final_norm_local_recon(x)
-
-        x = self.final_projection_local_recon(x)
-        x = torch.sigmoid(x)
-
-        return x
+        return x, mask
 
     def recon_loss(self, imgs, pred, mask):
         """
@@ -145,15 +164,22 @@ class MAE_CNN(nn.Module):
         return loss
 
     def forward_train(self, local_patch, global_img):
-        local_latent, local_mask = self.forward_encoder(
-            local_patch, self.cfg.train.mask_ratio, self.cfg.train.local_mae_patch)
-        local_pred = self.forward_local_decoder(local_latent)  # [N, L, p*p*3]
+        local_patch = local_patch.requires_grad_()
+        global_img = global_img.requires_grad_()
+        
+        #local_latent, local_mask = self.forward_encoder(
+        #    local_patch, self.cfg.train.mask_ratio, self.cfg.train.local_mae_patch)
+        #local_pred = self.forward_local_decoder(local_latent)  # [N, L, p*p*3]
+        local_latent, local_mask = checkpoint(self.forward_local_encoder, local_patch)
+        local_pred = checkpoint(self.forward_local_decoder, local_latent)
         local_loss = self.recon_loss(local_patch, local_pred, local_mask)
 
-        global_latent, global_mask = self.forward_encoder(
-            global_img, self.cfg.train.mask_ratio, self.cfg.train.global_mae_patch)
-        global_pred = self.forward_local_decoder(
-            global_latent)  # [N, L, p*p*3]
+        #global_latent, global_mask = self.forward_encoder(
+        #    global_img, self.cfg.train.mask_ratio, self.cfg.train.global_mae_patch)
+        #global_pred = self.forward_local_decoder(
+        #    global_latent)  # [N, L, p*p*3]
+        global_latent, global_mask = checkpoint(self.forward_global_encoder, global_img)
+        global_pred = checkpoint(self.forward_local_decoder, global_latent)
         global_loss = self.recon_loss(global_img, global_pred, global_mask)
 
         return local_loss, global_loss, local_pred, global_pred, local_mask, global_mask
